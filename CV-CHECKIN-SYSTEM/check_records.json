@@ -1,0 +1,62 @@
+[
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "in",
+    "timestamp": "2025-09-13 04:17:55"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "out",
+    "timestamp": "2025-09-13 04:19:13"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "in",
+    "timestamp": "2025-09-13 04:22:52"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "out",
+    "timestamp": "2025-09-13 04:23:01"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "in",
+    "timestamp": "2025-09-13 04:43:26"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "out",
+    "timestamp": "2025-09-13 04:43:28"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "in",
+    "timestamp": "2025-09-13 04:44:02"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "out",
+    "timestamp": "2025-09-13 04:44:04"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "in",
+    "timestamp": "2025-09-13 05:04:45"
+  },
+  {
+    "employee_id": "INTERN-01",
+    "name": "Bùi Anh Linh",
+    "action": "out",
+    "timestamp": "2025-09-13 05:04:55"
+  }
+]

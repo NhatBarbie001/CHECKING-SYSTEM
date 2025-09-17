@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Computer Vision Check-in/out</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.5s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        #video, #canvas {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+            color: #155724;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #721c24;
+        }
+
+        .status-info {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #004085;
+        }
+
+        .records-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        .records-table th,
+        .records-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .records-table th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .records-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .check-in {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .check-out {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .ocr-result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .ocr-result h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .ocr-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .ocr-field:last-child {
+            border-bottom: none;
+        }
+
+        .ocr-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .ocr-value {
+            color: #333;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .method-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .method-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .method-option.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Hệ thống Computer Vision Check-in/out</h1>
+            <p>Check-in/out qua QR Code & Face Recognition | OCR CCCD</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Camera Section -->
+            <div class="card">
+                <h2 class="card-title">📷 Camera Live</h2>
+                <div class="video-container">
+                    <video id="video" autoplay></video>
+                    <canvas id="canvas"></canvas>
+                </div>
+
+                <div class="method-selector">
+                    <div class="method-option active" data-method="qr">
+                        QR + Face
+                    </div>
+                    <div class="method-option" data-method="face">
+                        Chỉ Face
+                    </div>
+                    <div class="method-option" data-method="cccd">
+                        OCR CCCD
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="captureAndProcess()">
+                        📸 Chụp & Xử lý
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleCamera()">
+                        🔄 Đổi Camera
+                    </button>
+                </div>
+
+                <div id="status" style="margin-top: 15px;"></div>
+                <div class="loading-spinner" id="loading"></div>
+            </div>
+
+            <!-- Registration & Info Section -->
+            <div class="card">
+                <h2 class="card-title">👤 Đăng ký Nhân viên mới</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>Mã nhân viên:</label>
+                        <input type="text" id="empId" placeholder="NV001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Họ và tên:</label>
+                        <input type="text" id="empName" placeholder="Nguyễn Văn A" required>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="registerFace()">
+                        ➕ Đăng ký khuôn mặt
+                    </button>
+                </form>
+
+                <div id="registerStatus" style="margin-top: 15px;"></div>
+
+                <!-- OCR Result -->
+                <div id="ocrResult" style="display: none;">
+                    <h3 class="card-title" style="margin-top: 30px;">📄 Kết quả OCR CCCD</h3>
+                    <div class="ocr-result">
+                        <div class="ocr-field">
+                            <span class="ocr-label">Số CCCD:</span>
+                            <span class="ocr-value" id="cccdNumber">-</span>
+                        </div>
+                        <div class="ocr-field">
+                            <span class="ocr-label">Họ tên:</span>
+                            <span class="ocr-value" id="cccdName">-</span>
+                        </div>
+                        <div class="ocr-field">
+                            <span class="ocr-label">Ngày sinh:</span>
+                            <span class="ocr-value" id="cccdDob">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Records Section -->
+        <div class="card">
+            <h2 class="card-title">📊 Lịch sử Check-in/out</h2>
+            <button class="btn btn-warning" onclick="refreshRecords()">
+                🔄 Làm mới
+            </button>
+            <div style="overflow-x: auto;">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Mã NV</th>
+                            <th>Họ tên</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center;">Chưa có dữ liệu</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let context = canvas.getContext('2d');
+        let currentStream = null;
+        let currentMethod = 'qr';
+        let currentCamera = 'user'; // 'user' for front, 'environment' for back
+
+        // Initialize camera
+        async function initCamera() {
+            try {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+
+                const constraints = {
+                    video: {
+                        facingMode: currentCamera,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                showStatus('Không thể truy cập camera!', 'error');
+            }
+        }
+
+        function toggleCamera() {
+            currentCamera = currentCamera === 'user' ? 'environment' : 'user';
+            initCamera();
+        }
+
+        // Method selector
+        document.querySelectorAll('.method-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.method-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+                currentMethod = this.dataset.method;
+                
+                // Hide/show OCR result based on method
+                document.getElementById('ocrResult').style.display = 
+                    currentMethod === 'cccd' ? 'block' : 'none';
+            });
+        });
+
+        function captureImage() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg');
+        }
+
+        async function captureAndProcess() {
+            showLoading(true);
+            const imageData = captureImage();
+
+            try {
+                let endpoint = '/capture';
+                let payload = {
+                    image: imageData,
+                    method: currentMethod
+                };
+
+                if (currentMethod === 'cccd') {
+                    endpoint = '/process_cccd';
+                }
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (currentMethod === 'cccd') {
+                    displayOCRResult(result.data);
+                    showStatus('OCR CCCD thành công!', 'success');
+                } else {
+                    if (result.success) {
+                        showStatus(result.message, 'success');
+                        refreshRecords();
+                    } else {
+                        showStatus(result.message, 'error');
+                    }
+                }
+            } catch (err) {
+                showStatus('Lỗi xử lý: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function registerFace() {
+            const empId = document.getElementById('empId').value;
+            const empName = document.getElementById('empName').value;
+
+            if (!empId || !empName) {
+                showRegisterStatus('Vui lòng nhập đầy đủ thông tin!', 'error');
+                return;
+            }
+
+            showLoading(true);
+            const imageData = captureImage();
+
+            try {
+                const response = await fetch('/register_face', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: imageData,
+                        employee_id: empId,
+                        name: empName
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showRegisterStatus(result.message, 'success');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    showRegisterStatus(result.message, 'error');
+                }
+            } catch (err) {
+                showRegisterStatus('Lỗi đăng ký: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function refreshRecords() {
+            try {
+                const response = await fetch('/get_records');
+                const records = await response.json();
+                
+                const tbody = document.getElementById('recordsBody');
+                if (records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Chưa có dữ liệu</td></tr>';
+                } else {
+                    tbody.innerHTML = records.reverse().map(record => `
+                        <tr>
+                            <td>${record.timestamp}</td>
+                            <td>${record.employee_id}</td>
+                            <td>${record.name}</td>
+                            <td class="${record.action === 'in' ? 'check-in' : 'check-out'}">
+                                ${record.action === 'in' ? 'CHECK-IN ✅' : 'CHECK-OUT 🚪'}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Error fetching records:', err);
+            }
+        }
+
+        function displayOCRResult(data) {
+            if (data) {
+                document.getElementById('cccdNumber').textContent = data.so_cccd || '-';
+                document.getElementById('cccdName').textContent = data.ho_ten || '-';
+                document.getElementById('cccdDob').textContent = data.ngay_sinh || '-';
+                document.getElementById('ocrResult').style.display = 'block';
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showRegisterStatus(message, type) {
+            const statusDiv = document.getElementById('registerStatus');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            initCamera();
+            refreshRecords();
+            setInterval(refreshRecords, 30000); // Auto refresh every 30 seconds
+        });
+    </script>
+</body>
+</html>
